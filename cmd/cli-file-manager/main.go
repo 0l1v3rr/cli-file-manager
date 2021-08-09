@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -12,6 +13,8 @@ import (
 )
 
 var path string
+
+var l = widgets.NewList()
 
 func main() {
 	if err := ui.Init(); err != nil {
@@ -35,14 +38,15 @@ func initWidgets(path string) {
 	titleArr := strings.Split(path, "/")
 	title := titleArr[len(titleArr)-1]
 
-	l := widgets.NewList()
 	l.Title = title
 	l.Rows = cfm.ReadFiles(path)
-	l.TextStyle = ui.NewStyle(ui.ColorYellow)
+	l.TextStyle = ui.NewStyle(ui.ColorWhite)
 	l.WrapText = false
 	l.SetRect(0, 0, 35, 20)
 	l.BorderStyle.Fg = ui.ColorBlue
 	l.TitleStyle.Modifier = ui.ModifierBold
+	l.SelectedRowStyle.Fg = ui.ColorBlue
+	l.SelectedRowStyle.Modifier = ui.ModifierBold
 
 	p := widgets.NewParagraph()
 	p.Title = "Help Menu"
@@ -67,8 +71,26 @@ func initWidgets(path string) {
 			l.ScrollTop()
 		case "<End>":
 			l.ScrollBottom()
+		case "<Enter>":
+			selected := getFileName(l.SelectedRow)
+			if selected[len(selected)-1] == '/' {
+				path = fmt.Sprintf("%v/%v", path, selected)
+				l.Rows = cfm.ReadFiles(path)
+				l.SelectedRow = 0
+				l.SelectedRowStyle.Fg = ui.ColorBlue
+				l.SelectedRowStyle.Modifier = ui.ModifierBold
+			}
 		}
 
 		ui.Render(l)
 	}
+}
+
+func getFileName(n int) string {
+	row := l.Rows[n]
+	sliced := strings.Split(strings.Replace(row, "](fg:green)", "", 1), " ")
+	sliced = sliced[1:]
+	result := strings.Join(sliced, " ")
+
+	return result
 }
