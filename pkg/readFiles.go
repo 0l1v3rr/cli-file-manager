@@ -13,8 +13,9 @@ func ReadFiles(p string) []string {
 	}
 
 	res := []string{}
-	counter := 0
+	counter := 1
 
+	res = append(res, fmt.Sprintf("[[%v] %v](fg:blue)", counter, ".."))
 	for _, file := range files {
 		if file.IsDir() {
 			counter++

@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log"
 	"os"
+	"strings"
 
 	cfm "github.com/0l1v3rr/cli-file-manager/pkg"
 	ui "github.com/gizak/termui/v3"
@@ -31,14 +32,26 @@ func main() {
 }
 
 func initWidgets(path string) {
+	titleArr := strings.Split(path, "/")
+	title := titleArr[len(titleArr)-1]
+
 	l := widgets.NewList()
-	l.Title = path
+	l.Title = title
 	l.Rows = cfm.ReadFiles(path)
 	l.TextStyle = ui.NewStyle(ui.ColorYellow)
 	l.WrapText = false
-	l.SetRect(0, 0, 40, 20)
+	l.SetRect(0, 0, 35, 20)
+	l.BorderStyle.Fg = ui.ColorBlue
+	l.TitleStyle.Modifier = ui.ModifierBold
 
-	ui.Render(l)
+	p := widgets.NewParagraph()
+	p.Title = "Help Menu"
+	p.Text = "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n"
+	p.SetRect(35, 0, 70, 20)
+	p.BorderStyle.Fg = ui.ColorBlue
+	p.TitleStyle.Modifier = ui.ModifierBold
+
+	ui.Render(l, p)
 
 	uiEvents := ui.PollEvents()
 	for {
@@ -52,7 +65,7 @@ func initWidgets(path string) {
 			l.ScrollUp()
 		case "<Home>":
 			l.ScrollTop()
-		case "G", "<End>":
+		case "<End>":
 			l.ScrollBottom()
 		}
 
