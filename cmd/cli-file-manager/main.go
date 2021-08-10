@@ -47,7 +47,7 @@ func initWidgets() {
 
 	p := widgets.NewParagraph()
 	p.Title = "Help Menu"
-	p.Text = "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n"
+	p.Text = "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n[m](fg:green) - Memory Usage\n[f](fg:green) - Disk Information"
 	p.SetRect(35, 0, 70, 15)
 	p.BorderStyle.Fg = ui.ColorBlue
 	p.TitleStyle.Modifier = ui.ModifierBold
@@ -87,9 +87,12 @@ func initWidgets() {
 		case "<End>":
 			l.ScrollBottom()
 			p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
-		case "i":
-			/*disk := cfm.DiskUsage("/")
-			p2.Text = fmt.Sprintf("All: %.2f GB\n", float64(disk.All)/float64(1024*1024*1024))*/
+		case "m":
+			p3.Title = "Memory Usage"
+			p3.Text = cfm.ReadMemStats()
+		case "f":
+			p3.Title = "Disk Information"
+			p3.Text = fmt.Sprintf("[All: ](fg:green) - %.2f GB\n[Used:](fg:green) - %.2f GB\n[Free:](fg:green) - %.2f GB", float64(disk.All)/float64(1024*1024*1024), float64(disk.Used)/float64(1024*1024*1024), float64(disk.Free)/float64(1024*1024*1024))
 		case "<Enter>":
 			selected := getFileName(l.SelectedRow)
 			if selected[len(selected)-1] == '/' {
