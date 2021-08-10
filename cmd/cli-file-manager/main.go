@@ -30,15 +30,12 @@ func main() {
 	flag.StringVar(&path, "path", defaultPath, "The path of the folder.")
 	flag.Parse()
 
-	initWidgets(path)
+	initWidgets()
 
 }
 
-func initWidgets(path string) {
-	titleArr := strings.Split(path, "/")
-	title := titleArr[len(titleArr)-1]
-
-	l.Title = title
+func initWidgets() {
+	l.Title = "CLI File Manager"
 	l.Rows = cfm.ReadFiles(path)
 	l.TextStyle = ui.NewStyle(ui.ColorWhite)
 	l.WrapText = false
@@ -55,7 +52,14 @@ func initWidgets(path string) {
 	p.BorderStyle.Fg = ui.ColorBlue
 	p.TitleStyle.Modifier = ui.ModifierBold
 
-	ui.Render(l, p)
+	p2 := widgets.NewParagraph()
+	p2.Title = "File Information"
+	p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+	p2.SetRect(0, 30, 70, 20)
+	p2.BorderStyle.Fg = ui.ColorBlue
+	p2.TitleStyle.Modifier = ui.ModifierBold
+
+	ui.Render(l, p, p2)
 
 	uiEvents := ui.PollEvents()
 	for {
@@ -65,24 +69,42 @@ func initWidgets(path string) {
 			return
 		case "<Down>":
 			l.ScrollDown()
+			p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
 		case "<Up>":
 			l.ScrollUp()
+			p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
 		case "<Home>":
 			l.ScrollTop()
+			p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
 		case "<End>":
 			l.ScrollBottom()
+			p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
 		case "<Enter>":
 			selected := getFileName(l.SelectedRow)
 			if selected[len(selected)-1] == '/' {
-				path = fmt.Sprintf("%v/%v", path, selected)
+				if selected == "../" {
+					splitted := strings.Split(path, "/")
+					if len(splitted) > 0 {
+						splitted = splitted[:len(splitted)-1]
+					}
+					path = strings.Join(splitted, "/")
+				} else {
+					if path[len(path)-1] == '/' || selected[0] == '/' {
+						path = fmt.Sprintf("%v%v", path, selected)
+					} else {
+						path = fmt.Sprintf("%v/%v", path, selected)
+					}
+				}
 				l.Rows = cfm.ReadFiles(path)
+
 				l.SelectedRow = 0
 				l.SelectedRowStyle.Fg = ui.ColorBlue
 				l.SelectedRowStyle.Modifier = ui.ModifierBold
+				p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
 			}
 		}
 
-		ui.Render(l)
+		ui.Render(l, p2)
 	}
 }
 
