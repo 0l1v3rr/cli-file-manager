@@ -48,9 +48,17 @@ func initWidgets() {
 	p := widgets.NewParagraph()
 	p.Title = "Help Menu"
 	p.Text = "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n"
-	p.SetRect(35, 0, 70, 20)
+	p.SetRect(35, 0, 70, 15)
 	p.BorderStyle.Fg = ui.ColorBlue
 	p.TitleStyle.Modifier = ui.ModifierBold
+
+	p3 := widgets.NewParagraph()
+	p3.Title = "Disk Information"
+	disk := cfm.DiskUsage("/")
+	p3.Text = fmt.Sprintf("[All: ](fg:green) - %.2f GB\n[Used:](fg:green) - %.2f GB\n[Free:](fg:green) - %.2f GB", float64(disk.All)/float64(1024*1024*1024), float64(disk.Used)/float64(1024*1024*1024), float64(disk.Free)/float64(1024*1024*1024))
+	p3.SetRect(35, 20, 70, 15)
+	p3.BorderStyle.Fg = ui.ColorBlue
+	p3.TitleStyle.Modifier = ui.ModifierBold
 
 	p2 := widgets.NewParagraph()
 	p2.Title = "File Information"
@@ -59,7 +67,7 @@ func initWidgets() {
 	p2.BorderStyle.Fg = ui.ColorBlue
 	p2.TitleStyle.Modifier = ui.ModifierBold
 
-	ui.Render(l, p, p2)
+	ui.Render(l, p, p2, p3)
 
 	uiEvents := ui.PollEvents()
 	for {
@@ -79,6 +87,9 @@ func initWidgets() {
 		case "<End>":
 			l.ScrollBottom()
 			p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+		case "i":
+			/*disk := cfm.DiskUsage("/")
+			p2.Text = fmt.Sprintf("All: %.2f GB\n", float64(disk.All)/float64(1024*1024*1024))*/
 		case "<Enter>":
 			selected := getFileName(l.SelectedRow)
 			if selected[len(selected)-1] == '/' {
@@ -104,7 +115,7 @@ func initWidgets() {
 			}
 		}
 
-		ui.Render(l, p2)
+		ui.Render(l, p2, p3)
 	}
 }
 
