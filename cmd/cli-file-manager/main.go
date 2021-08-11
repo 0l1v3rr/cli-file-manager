@@ -10,6 +10,7 @@ import (
 	cfm "github.com/0l1v3rr/cli-file-manager/pkg"
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
+	"github.com/skratchdot/open-golang/open"
 )
 
 var (
@@ -124,6 +125,14 @@ func initWidgets() {
 				l.SelectedRowStyle.Fg = ui.ColorBlue
 				l.SelectedRowStyle.Modifier = ui.ModifierBold
 				p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+			} else {
+				var filePath string
+				if path[len(path)-1] == '/' || selected[0] == '/' {
+					filePath = fmt.Sprintf("%v%v", path, selected)
+				} else {
+					filePath = fmt.Sprintf("%v/%v", path, selected)
+				}
+				open.Start(filePath)
 			}
 		}
 
