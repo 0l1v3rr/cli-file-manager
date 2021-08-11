@@ -12,9 +12,10 @@ import (
 	"github.com/gizak/termui/v3/widgets"
 )
 
-var path string
-
-var l = widgets.NewList()
+var (
+	path string
+	l    = widgets.NewList()
+)
 
 func main() {
 	if err := ui.Init(); err != nil {
@@ -35,6 +36,7 @@ func main() {
 }
 
 func initWidgets() {
+	//l.Title = cfm.ReadJson()
 	l.Title = "CLI File Manager"
 	l.Rows = cfm.ReadFiles(path)
 	l.TextStyle = ui.NewStyle(ui.ColorWhite)
@@ -52,10 +54,16 @@ func initWidgets() {
 	p.BorderStyle.Fg = ui.ColorBlue
 	p.TitleStyle.Modifier = ui.ModifierBold
 
-	p3 := widgets.NewParagraph()
-	p3.Title = "Disk Information"
 	disk := cfm.DiskUsage("/")
-	p3.Text = fmt.Sprintf("[All: ](fg:green) - %.2f GB\n[Used:](fg:green) - %.2f GB\n[Free:](fg:green) - %.2f GB", float64(disk.All)/float64(1024*1024*1024), float64(disk.Used)/float64(1024*1024*1024), float64(disk.Free)/float64(1024*1024*1024))
+
+	p3 := widgets.NewParagraph()
+	if cfm.ReadJson() == "memory" {
+		p3.Title = "Memory Usage"
+		p3.Text = cfm.ReadMemStats()
+	} else {
+		p3.Title = "Disk Information"
+		p3.Text = fmt.Sprintf("[All: ](fg:green) - %.2f GB\n[Used:](fg:green) - %.2f GB\n[Free:](fg:green) - %.2f GB", float64(disk.All)/float64(1024*1024*1024), float64(disk.Used)/float64(1024*1024*1024), float64(disk.Free)/float64(1024*1024*1024))
+	}
 	p3.SetRect(35, 20, 70, 15)
 	p3.BorderStyle.Fg = ui.ColorBlue
 	p3.TitleStyle.Modifier = ui.ModifierBold
@@ -65,6 +73,7 @@ func initWidgets() {
 	p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
 	p2.SetRect(0, 30, 70, 20)
 	p2.BorderStyle.Fg = ui.ColorBlue
+	p2.WrapText = false
 	p2.TitleStyle.Modifier = ui.ModifierBold
 
 	ui.Render(l, p, p2, p3)
@@ -118,7 +127,7 @@ func initWidgets() {
 			}
 		}
 
-		ui.Render(l, p2, p3)
+		ui.Render(l, p, p2, p3)
 	}
 }
 
