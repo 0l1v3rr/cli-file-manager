@@ -79,6 +79,7 @@ func initWidgets() {
 
 	ui.Render(l, p, p2, p3)
 
+	previousKey := ""
 	uiEvents := ui.PollEvents()
 	for {
 		e := <-uiEvents
@@ -97,6 +98,22 @@ func initWidgets() {
 		case "<End>":
 			l.ScrollBottom()
 			p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+		case "<C-d>":
+			if previousKey == "<C-d>" {
+				selected := getFileName(l.SelectedRow)
+				filePath := ""
+				if path[len(path)-1] == '/' || selected[0] == '/' {
+					filePath = fmt.Sprintf("%v%v", path, selected)
+				} else {
+					filePath = fmt.Sprintf("%v/%v", path, selected)
+				}
+				err := os.Remove(filePath)
+				if err != nil {
+					log.Fatal(e)
+					return
+				}
+				l.Rows = cfm.ReadFiles(path)
+			}
 		case "m":
 			p3.Title = "Memory Usage"
 			p3.Text = cfm.ReadMemStats()
@@ -134,6 +151,12 @@ func initWidgets() {
 				}
 				open.Start(filePath)
 			}
+		}
+
+		if previousKey == "<C-d>" {
+			previousKey = ""
+		} else {
+			previousKey = e.ID
 		}
 
 		ui.Render(l, p, p2, p3)
