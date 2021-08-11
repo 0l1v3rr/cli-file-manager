@@ -37,7 +37,6 @@ func main() {
 }
 
 func initWidgets() {
-	//l.Title = cfm.ReadJson()
 	l.Title = "CLI File Manager"
 	l.Rows = cfm.ReadFiles(path)
 	l.TextStyle = ui.NewStyle(ui.ColorWhite)
@@ -50,7 +49,7 @@ func initWidgets() {
 
 	p := widgets.NewParagraph()
 	p.Title = "Help Menu"
-	p.Text = "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n[m](fg:green) - Memory Usage\n[f](fg:green) - Disk Information"
+	p.Text = "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n[m](fg:green) - Memory Usage\n[f](fg:green) - Disk Information\n[^D (2 times)](fg:green) - Remove file"
 	p.SetRect(35, 0, 70, 15)
 	p.BorderStyle.Fg = ui.ColorBlue
 	p.TitleStyle.Modifier = ui.ModifierBold
