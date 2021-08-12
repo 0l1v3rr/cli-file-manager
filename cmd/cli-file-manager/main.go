@@ -49,7 +49,7 @@ func initWidgets() {
 
 	p := widgets.NewParagraph()
 	p.Title = "Help Menu"
-	p.Text = "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n[m](fg:green) - Memory Usage\n[f](fg:green) - Disk Information\n[^D (2 times)](fg:green) - Remove file\n[^F](fg:green) - Create file\n[^N](fg:green) - Create folder\n[^R](fg:green) - Rename file"
+	p.Text = "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n[m](fg:green) - Memory Usage\n[f](fg:green) - Disk Information\n[^D (2 times)](fg:green) - Remove file\n[^F](fg:green) - Create file\n[^N](fg:green) - Create folder\n[^R](fg:green) - Rename file\n[Esc](fg:green) - Cancel\n"
 	p.SetRect(35, 0, 70, 15)
 	p.BorderStyle.Fg = ui.ColorBlue
 	p.TitleStyle.Modifier = ui.ModifierBold
