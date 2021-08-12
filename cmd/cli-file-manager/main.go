@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -33,7 +34,6 @@ func main() {
 	flag.Parse()
 
 	initWidgets()
-
 }
 
 func initWidgets() {
@@ -49,7 +49,7 @@ func initWidgets() {
 
 	p := widgets.NewParagraph()
 	p.Title = "Help Menu"
-	p.Text = "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n[m](fg:green) - Memory Usage\n[f](fg:green) - Disk Information\n[^D (2 times)](fg:green) - Remove file"
+	p.Text = "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n[m](fg:green) - Memory Usage\n[f](fg:green) - Disk Information\n[^D (2 times)](fg:green) - Remove file\n[^F](fg:green) - Create file"
 	p.SetRect(35, 0, 70, 15)
 	p.BorderStyle.Fg = ui.ColorBlue
 	p.TitleStyle.Modifier = ui.ModifierBold
@@ -79,6 +79,8 @@ func initWidgets() {
 	ui.Render(l, p, p2, p3)
 
 	previousKey := ""
+	inputField := ""
+	fileCreatingInProgress := false
 	uiEvents := ui.PollEvents()
 	for {
 		e := <-uiEvents
@@ -86,76 +88,131 @@ func initWidgets() {
 		case "q", "<C-c>":
 			return
 		case "<Down>":
-			l.ScrollDown()
-			p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+			if !fileCreatingInProgress {
+				l.ScrollDown()
+				p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+			}
 		case "<Up>":
-			l.ScrollUp()
-			p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+			if !fileCreatingInProgress {
+				l.ScrollUp()
+				p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+			}
 		case "<Home>":
-			l.ScrollTop()
-			p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+			if !fileCreatingInProgress {
+				l.ScrollTop()
+				p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+			}
 		case "<End>":
-			l.ScrollBottom()
-			p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+			if !fileCreatingInProgress {
+				l.ScrollBottom()
+				p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+			}
 		case "<C-d>":
-			if previousKey == "<C-d>" {
-				selected := getFileName(l.SelectedRow)
-				filePath := ""
-				if path[len(path)-1] == '/' || selected[0] == '/' {
-					filePath = fmt.Sprintf("%v%v", path, selected)
-				} else {
-					filePath = fmt.Sprintf("%v/%v", path, selected)
+			if !fileCreatingInProgress {
+				if previousKey == "<C-d>" {
+					selected := getFileName(l.SelectedRow)
+					filePath := ""
+					if path[len(path)-1] == '/' || selected[0] == '/' {
+						filePath = fmt.Sprintf("%v%v", path, selected)
+					} else {
+						filePath = fmt.Sprintf("%v/%v", path, selected)
+					}
+					err := os.Remove(filePath)
+					if err != nil {
+						log.Fatal(e)
+						return
+					}
+					l.Rows = cfm.ReadFiles(path)
+					l.SelectedRow = 0
 				}
-				err := os.Remove(filePath)
-				if err != nil {
-					log.Fatal(e)
-					return
-				}
-				l.Rows = cfm.ReadFiles(path)
+			}
+		case "<C-f>":
+			if !fileCreatingInProgress {
+				fileCreatingInProgress = true
+				l.Rows = append(l.Rows, fmt.Sprintf("[?] %v", inputField))
+				l.SelectedRow = len(l.Rows) - 1
+			}
+		case "<Escape>":
+			if fileCreatingInProgress {
+				fileCreatingInProgress = false
+				inputField = ""
+				l.SelectedRow = 0
+				l.Rows = l.Rows[:len(l.Rows)-1]
 			}
 		case "m":
-			p3.Title = "Memory Usage"
-			p3.Text = cfm.ReadMemStats()
+			if !fileCreatingInProgress {
+				p3.Title = "Memory Usage"
+				p3.Text = cfm.ReadMemStats()
+			}
 		case "f":
-			p3.Title = "Disk Information"
-			p3.Text = fmt.Sprintf("[All: ](fg:green) - %.2f GB\n[Used:](fg:green) - %.2f GB\n[Free:](fg:green) - %.2f GB", float64(disk.All)/float64(1024*1024*1024), float64(disk.Used)/float64(1024*1024*1024), float64(disk.Free)/float64(1024*1024*1024))
+			if !fileCreatingInProgress {
+				p3.Title = "Disk Information"
+				p3.Text = fmt.Sprintf("[All: ](fg:green) - %.2f GB\n[Used:](fg:green) - %.2f GB\n[Free:](fg:green) - %.2f GB", float64(disk.All)/float64(1024*1024*1024), float64(disk.Used)/float64(1024*1024*1024), float64(disk.Free)/float64(1024*1024*1024))
+			}
 		case "<Enter>":
-			selected := getFileName(l.SelectedRow)
-			if selected[len(selected)-1] == '/' {
-				if selected == "../" {
-					splitted := strings.Split(path, "/")
-					if len(splitted) > 0 {
-						splitted = splitted[:len(splitted)-1]
-					}
-					path = strings.Join(splitted, "/")
-				} else {
-					if path[len(path)-1] == '/' || selected[0] == '/' {
-						path = fmt.Sprintf("%v%v", path, selected)
+			if !fileCreatingInProgress {
+				selected := getFileName(l.SelectedRow)
+				if selected[len(selected)-1] == '/' {
+					if selected == "../" {
+						splitted := strings.Split(path, "/")
+						if len(splitted) > 0 {
+							splitted = splitted[:len(splitted)-1]
+						}
+						path = strings.Join(splitted, "/")
 					} else {
-						path = fmt.Sprintf("%v/%v", path, selected)
+						if path[len(path)-1] == '/' || selected[0] == '/' {
+							path = fmt.Sprintf("%v%v", path, selected)
+						} else {
+							path = fmt.Sprintf("%v/%v", path, selected)
+						}
+					}
+					l.Rows = cfm.ReadFiles(path)
+
+					l.SelectedRow = 0
+					l.SelectedRowStyle.Fg = ui.ColorBlue
+					l.SelectedRowStyle.Modifier = ui.ModifierBold
+					p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+				} else {
+					var filePath string
+					if path[len(path)-1] == '/' || selected[0] == '/' {
+						filePath = fmt.Sprintf("%v%v", path, selected)
+					} else {
+						filePath = fmt.Sprintf("%v/%v", path, selected)
+					}
+					open.Start(filePath)
+				}
+			} else if fileCreatingInProgress {
+				if len(inputField) >= 3 {
+					err := ioutil.WriteFile(fmt.Sprintf("%v/%v", path, inputField), []byte(""), 0755)
+					if err == nil {
+						l.Rows = cfm.ReadFiles(path)
+						l.SelectedRow = 0
+						inputField = ""
+						fileCreatingInProgress = false
 					}
 				}
-				l.Rows = cfm.ReadFiles(path)
-
-				l.SelectedRow = 0
-				l.SelectedRowStyle.Fg = ui.ColorBlue
-				l.SelectedRowStyle.Modifier = ui.ModifierBold
-				p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
-			} else {
-				var filePath string
-				if path[len(path)-1] == '/' || selected[0] == '/' {
-					filePath = fmt.Sprintf("%v%v", path, selected)
-				} else {
-					filePath = fmt.Sprintf("%v/%v", path, selected)
-				}
-				open.Start(filePath)
 			}
 		}
 
-		if previousKey == "<C-d>" {
-			previousKey = ""
-		} else {
-			previousKey = e.ID
+		if fileCreatingInProgress {
+			if e.ID[0] != '<' {
+				inputField = inputField + e.ID
+				l.Rows[len(l.Rows)-1] = fmt.Sprintf("[?] %v", inputField)
+			} else if e.ID == "<Backspace>" {
+				le := len(inputField)
+				if le > 0 {
+					inputField = inputField[:le-1]
+				}
+				l.Rows[len(l.Rows)-1] = fmt.Sprintf("[?] %v", inputField)
+			}
+		}
+
+		if !fileCreatingInProgress {
+			if previousKey == "<C-d>" {
+				previousKey = ""
+			} else {
+				previousKey = e.ID
+			}
 		}
 
 		ui.Render(l, p, p2, p3)
