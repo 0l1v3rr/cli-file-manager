@@ -135,36 +135,48 @@ func initWidgets() {
 				fileCreatingInProgress = true
 				l.Rows = append(l.Rows, fmt.Sprintf("[?]: %v", inputField))
 				l.SelectedRow = len(l.Rows) - 1
+				textFieldStyle()
+				p2.Text = cfm.EmptyFileInfo()
 			}
 		case "<C-n>":
 			if !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
 				dirCreatingInProgress = true
 				l.Rows = append(l.Rows, fmt.Sprintf("[$]: %v", inputField))
 				l.SelectedRow = len(l.Rows) - 1
+				textFieldStyle()
+				p2.Text = cfm.EmptyFileInfo()
 			}
 		case "<C-r>":
 			if !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
 				renameInProgress = true
 				originalName = l.Rows[l.SelectedRow]
 				inputField = getFileName(l.SelectedRow)
+				if inputField[len(inputField)-1] == '/' {
+					inputField = inputField[:len(inputField)-1]
+				}
 				l.Rows[l.SelectedRow] = fmt.Sprintf("[#]: %v", inputField)
+				textFieldStyle()
 			}
 		case "<Escape>":
+			resetColors()
 			if fileCreatingInProgress {
 				fileCreatingInProgress = false
 				inputField = ""
 				l.SelectedRow = 0
 				l.Rows = l.Rows[:len(l.Rows)-1]
+				p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
 			} else if dirCreatingInProgress {
 				dirCreatingInProgress = false
 				inputField = ""
 				l.SelectedRow = 0
 				l.Rows = l.Rows[:len(l.Rows)-1]
+				p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
 			} else if renameInProgress {
 				renameInProgress = false
 				inputField = ""
 				l.Rows[l.SelectedRow] = originalName
 				originalName = ""
+				p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
 			}
 		case "m":
 			if !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
@@ -216,6 +228,8 @@ func initWidgets() {
 						l.SelectedRow = 0
 						inputField = ""
 						fileCreatingInProgress = false
+						resetColors()
+						p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
 					}
 				}
 			} else if dirCreatingInProgress {
@@ -226,6 +240,8 @@ func initWidgets() {
 						l.SelectedRow = 0
 						inputField = ""
 						dirCreatingInProgress = false
+						resetColors()
+						p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
 					}
 				}
 			} else if renameInProgress {
@@ -234,11 +250,12 @@ func initWidgets() {
 					err := os.Rename(fmt.Sprintf("%v/%v", path, original), fmt.Sprintf("%v/%v", path, inputField))
 					if err == nil {
 						l.Rows = cfm.ReadFiles(path)
-						l.SelectedRow = 0
 						inputField = ""
 						originalName = ""
 						original = ""
 						renameInProgress = false
+						resetColors()
+						p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
 					}
 				}
 			}
@@ -306,4 +323,14 @@ func getFileNameByFullName(s string) string {
 	result := strings.Join(sliced, " ")
 
 	return result
+}
+
+func textFieldStyle() {
+	l.SelectedRowStyle.Bg = ui.ColorWhite
+	l.SelectedRowStyle.Fg = ui.ColorBlack
+}
+
+func resetColors() {
+	l.SelectedRowStyle.Bg = ui.ColorClear
+	l.SelectedRowStyle.Fg = ui.ColorBlue
 }
