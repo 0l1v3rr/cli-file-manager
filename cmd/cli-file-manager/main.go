@@ -49,7 +49,7 @@ func initWidgets() {
 
 	p := widgets.NewParagraph()
 	p.Title = "Help Menu"
-	p.Text = "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n[m](fg:green) - Memory Usage\n[f](fg:green) - Disk Information\n[^D (2 times)](fg:green) - Remove file\n[^F](fg:green) - Create file\n[^N](fg:green) - Create folder\n[^R](fg:green) - Rename file\n[Esc](fg:green) - Cancel\n"
+	p.Text = "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n[m](fg:green) - Memory Usage\n[f](fg:green) - Disk Information\n[^D (2 times)](fg:green) - Remove file\n[^F](fg:green) - Create file\n[^N](fg:green) - Create folder\n[^R](fg:green) - Rename file\n"
 	p.SetRect(35, 0, 70, 15)
 	p.BorderStyle.Fg = ui.ColorBlue
 	p.TitleStyle.Modifier = ui.ModifierBold
@@ -137,6 +137,7 @@ func initWidgets() {
 				l.SelectedRow = len(l.Rows) - 1
 				textFieldStyle()
 				p2.Text = cfm.EmptyFileInfo()
+				p.Text = "[Esc](fg:green) - Cancel\n[Enter](fg:green) - Apply Changes\n"
 			}
 		case "<C-n>":
 			if !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
@@ -145,6 +146,7 @@ func initWidgets() {
 				l.SelectedRow = len(l.Rows) - 1
 				textFieldStyle()
 				p2.Text = cfm.EmptyFileInfo()
+				p.Text = "[Esc](fg:green) - Cancel\n[Enter](fg:green) - Apply Changes\n"
 			}
 		case "<C-r>":
 			if !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
@@ -156,6 +158,7 @@ func initWidgets() {
 				}
 				l.Rows[l.SelectedRow] = fmt.Sprintf("[#]: %v", inputField)
 				textFieldStyle()
+				p.Text = "[Esc](fg:green) - Cancel\n[Enter](fg:green) - Apply Changes\n"
 			}
 		case "<Escape>":
 			resetColors()
@@ -165,18 +168,21 @@ func initWidgets() {
 				l.SelectedRow = 0
 				l.Rows = l.Rows[:len(l.Rows)-1]
 				p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+				p.Text = "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n[m](fg:green) - Memory Usage\n[f](fg:green) - Disk Information\n[^D (2 times)](fg:green) - Remove file\n[^F](fg:green) - Create file\n[^N](fg:green) - Create folder\n[^R](fg:green) - Rename file\n"
 			} else if dirCreatingInProgress {
 				dirCreatingInProgress = false
 				inputField = ""
 				l.SelectedRow = 0
 				l.Rows = l.Rows[:len(l.Rows)-1]
 				p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+				p.Text = "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n[m](fg:green) - Memory Usage\n[f](fg:green) - Disk Information\n[^D (2 times)](fg:green) - Remove file\n[^F](fg:green) - Create file\n[^N](fg:green) - Create folder\n[^R](fg:green) - Rename file\n"
 			} else if renameInProgress {
 				renameInProgress = false
 				inputField = ""
 				l.Rows[l.SelectedRow] = originalName
 				originalName = ""
 				p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+				p.Text = "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n[m](fg:green) - Memory Usage\n[f](fg:green) - Disk Information\n[^D (2 times)](fg:green) - Remove file\n[^F](fg:green) - Create file\n[^N](fg:green) - Create folder\n[^R](fg:green) - Rename file\n"
 			}
 		case "m":
 			if !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
@@ -230,6 +236,7 @@ func initWidgets() {
 						fileCreatingInProgress = false
 						resetColors()
 						p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+						p.Text = "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n[m](fg:green) - Memory Usage\n[f](fg:green) - Disk Information\n[^D (2 times)](fg:green) - Remove file\n[^F](fg:green) - Create file\n[^N](fg:green) - Create folder\n[^R](fg:green) - Rename file\n"
 					}
 				}
 			} else if dirCreatingInProgress {
@@ -242,6 +249,7 @@ func initWidgets() {
 						dirCreatingInProgress = false
 						resetColors()
 						p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+						p.Text = "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n[m](fg:green) - Memory Usage\n[f](fg:green) - Disk Information\n[^D (2 times)](fg:green) - Remove file\n[^F](fg:green) - Create file\n[^N](fg:green) - Create folder\n[^R](fg:green) - Rename file\n"
 					}
 				}
 			} else if renameInProgress {
@@ -256,6 +264,7 @@ func initWidgets() {
 						renameInProgress = false
 						resetColors()
 						p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+						p.Text = "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n[m](fg:green) - Memory Usage\n[f](fg:green) - Disk Information\n[^D (2 times)](fg:green) - Remove file\n[^F](fg:green) - Create file\n[^N](fg:green) - Create folder\n[^R](fg:green) - Rename file\n"
 					}
 				}
 			}
