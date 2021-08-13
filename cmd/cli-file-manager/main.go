@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -20,25 +19,28 @@ var (
 )
 
 func main() {
-	if err := ui.Init(); err != nil {
-		log.Fatalf("failed to initialize termui: %v", err)
-	}
-	defer ui.Close()
 
 	defaultPath, err := os.Getwd()
 	if err != nil {
 		log.Println(err)
 	}
 
-	flag.StringVar(&path, "path", defaultPath, "The path of the folder.")
-	flag.Parse()
+	if len(os.Args) > 1 && os.Args[1] != "" {
+		path = os.Args[1]
+	} else {
+		path = defaultPath
+	}
+
+	if err := ui.Init(); err != nil {
+		log.Fatalf("failed to initialize termui: %v", err)
+	}
+	defer ui.Close()
 
 	initWidgets()
 }
 
 func initWidgets() {
 	l.Title = "CLI File Manager"
-	l.Title = fmt.Sprintf("h: %v, w: %v", cfm.GetCliHeight(), cfm.GetCliWidth())
 	l.Rows = cfm.ReadFiles(path)
 	l.TextStyle = ui.NewStyle(ui.ColorWhite)
 	l.WrapText = false
@@ -58,7 +60,8 @@ func initWidgets() {
 	disk := cfm.DiskUsage("/")
 
 	p3 := widgets.NewParagraph()
-	if cfm.ReadJson() == "memory" {
+	json, err := cfm.ReadJson()
+	if json == "memory" || err != nil {
 		p3.Title = "Memory Usage"
 		p3.Text = cfm.ReadMemStats()
 	} else {
