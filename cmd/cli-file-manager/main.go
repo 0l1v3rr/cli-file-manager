@@ -38,10 +38,11 @@ func main() {
 
 func initWidgets() {
 	l.Title = "CLI File Manager"
+	l.Title = fmt.Sprintf("h: %v, w: %v", cfm.GetCliHeight(), cfm.GetCliWidth())
 	l.Rows = cfm.ReadFiles(path)
 	l.TextStyle = ui.NewStyle(ui.ColorWhite)
 	l.WrapText = false
-	l.SetRect(0, 0, 35, 20)
+	l.SetRect(0, 0, cfm.GetCliWidth()/2, int(float64(cfm.GetCliHeight())*0.73))
 	l.BorderStyle.Fg = ui.ColorBlue
 	l.TitleStyle.Modifier = ui.ModifierBold
 	l.SelectedRowStyle.Fg = ui.ColorBlue
@@ -50,7 +51,7 @@ func initWidgets() {
 	p := widgets.NewParagraph()
 	p.Title = "Help Menu"
 	p.Text = "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n[m](fg:green) - Memory Usage\n[f](fg:green) - Disk Information\n[^D (2 times)](fg:green) - Remove file\n[^F](fg:green) - Create file\n[^N](fg:green) - Create folder\n[^R](fg:green) - Rename file\n"
-	p.SetRect(35, 0, 70, 15)
+	p.SetRect(cfm.GetCliWidth()/2, 0, cfm.GetCliWidth(), int(float64(cfm.GetCliHeight())*0.58))
 	p.BorderStyle.Fg = ui.ColorBlue
 	p.TitleStyle.Modifier = ui.ModifierBold
 
@@ -64,14 +65,14 @@ func initWidgets() {
 		p3.Title = "Disk Information"
 		p3.Text = fmt.Sprintf("[All: ](fg:green) - %.2f GB\n[Used:](fg:green) - %.2f GB\n[Free:](fg:green) - %.2f GB", float64(disk.All)/float64(1024*1024*1024), float64(disk.Used)/float64(1024*1024*1024), float64(disk.Free)/float64(1024*1024*1024))
 	}
-	p3.SetRect(35, 20, 70, 15)
+	p3.SetRect(cfm.GetCliWidth()/2, int(float64(cfm.GetCliHeight())*0.73), cfm.GetCliWidth(), int(float64(cfm.GetCliHeight())*0.58))
 	p3.BorderStyle.Fg = ui.ColorBlue
 	p3.TitleStyle.Modifier = ui.ModifierBold
 
 	p2 := widgets.NewParagraph()
 	p2.Title = "File Information"
 	p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
-	p2.SetRect(0, 30, 70, 20)
+	p2.SetRect(0, cfm.GetCliHeight(), cfm.GetCliWidth(), int(float64(cfm.GetCliHeight())*0.73))
 	p2.BorderStyle.Fg = ui.ColorBlue
 	p2.WrapText = false
 	p2.TitleStyle.Modifier = ui.ModifierBold
@@ -194,6 +195,12 @@ func initWidgets() {
 				p3.Title = "Disk Information"
 				p3.Text = fmt.Sprintf("[All: ](fg:green) - %.2f GB\n[Used:](fg:green) - %.2f GB\n[Free:](fg:green) - %.2f GB", float64(disk.All)/float64(1024*1024*1024), float64(disk.Used)/float64(1024*1024*1024), float64(disk.Free)/float64(1024*1024*1024))
 			}
+		case "<Resize>":
+			l.SetRect(0, 0, cfm.GetCliWidth()/2, int(float64(cfm.GetCliHeight())*0.73))
+			p.SetRect(cfm.GetCliWidth()/2, 0, cfm.GetCliWidth(), int(float64(cfm.GetCliHeight())*0.58))
+			p2.SetRect(0, cfm.GetCliHeight(), cfm.GetCliWidth(), int(float64(cfm.GetCliHeight())*0.73))
+			p3.SetRect(cfm.GetCliWidth()/2, int(float64(cfm.GetCliHeight())*0.73), cfm.GetCliWidth(), int(float64(cfm.GetCliHeight())*0.58))
+			ui.Render(l, p, p2, p3)
 		case "<Enter>":
 			if !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
 				selected := getFileName(l.SelectedRow)
