@@ -1,6 +1,10 @@
 build:
-	go build -o ./bin/cli-file-manager cmd/cli-file-manager/main.go
+	go build -o ./bin/cfm cmd/cli-file-manager/main.go
 run: build
-	./bin/cli-file-manager
+	./bin/cfm
 clean:
 	rm -rf bin/
+update:
+	git pull https://github.com/0l1v3rr/cli-file-manager.git
+	build
+	@echo "Successful update!"
