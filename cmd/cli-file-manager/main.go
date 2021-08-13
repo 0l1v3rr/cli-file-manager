@@ -211,9 +211,15 @@ func initWidgets() {
 					if selected == "../" {
 						splitted := strings.Split(path, "/")
 						if len(splitted) > 0 {
-							splitted = splitted[:len(splitted)-1]
+							if len(splitted) == 2 {
+								path = "/"
+							} else {
+								splitted = splitted[:len(splitted)-1]
+								path = strings.Join(splitted, "/")
+							}
+						} else {
+							path = "/"
 						}
-						path = strings.Join(splitted, "/")
 					} else {
 						if path[len(path)-1] == '/' || selected[0] == '/' {
 							path = fmt.Sprintf("%v%v", path, selected)
