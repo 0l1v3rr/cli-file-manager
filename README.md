@@ -9,7 +9,7 @@ It's fully responsive and incredibly fast.
 - Disc usage panel
 - File and Folder information
 - Open files (With the default program of the OS)
-- Delete files or **empty** folders
+- Delete files or folders
 - Rename files or folders
 - Create files or folders
 - Responsive

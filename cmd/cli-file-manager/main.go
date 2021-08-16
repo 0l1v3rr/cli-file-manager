@@ -131,6 +131,13 @@ func initWidgets() {
 							l.Rows = cfm.ReadFiles(path)
 							l.SelectedRow = 0
 							p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+						} else {
+							err2 := os.RemoveAll(filePath)
+							if err2 == nil {
+								l.Rows = cfm.ReadFiles(path)
+								l.SelectedRow = 0
+								p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+							}
 						}
 					}
 				}
