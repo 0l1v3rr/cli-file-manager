@@ -8,7 +8,7 @@ import (
 )
 
 func ReadJson() (string, error) {
-	data, err1 := ioutil.ReadFile("./settings.json")
+	data, err1 := ioutil.ReadFile("/usr/local/cli-file-manager/settings.json")
 	if err1 != nil {
 		fmt.Print(err1)
 	} else {

@@ -13,15 +13,18 @@ It's fully responsive and incredibly fast.
 - Rename files or folders
 - Create files or folders
 - Responsive
+- Open VS Code 
 
-## Installation
-Download [Git](https://git-scm.com/downloads) and [Go](https://golang.org/dl/)
-### - Linux!:
+## Installation - Linux
+Download [Git](https://git-scm.com/downloads) and [Go](https://golang.org/dl/)<br>
+
+#### Open a terminal and type these commands:
 ```sh
+cd /usr/local
 git clone https://github.com/0l1v3rr/cli-file-manager.git
 cd cli-file-manager
 make build
-export PATH="$PATH:/path/to/your/cli-file-manager/bin"
+export PATH="$PATH:/usr/local/cli-file-manager/bin"
 ```
 Now try to execute the command `cfm`. <br>
 In the first argument, you can give the path where you want it to open. (Not necessary)<br>
@@ -32,7 +35,7 @@ nano ~/.profile
 ```
 Now scroll to the bottom and paste this:
 ```sh
-export PATH="$PATH:/path/to/your/cli-file-manager/bin"
+export PATH="$PATH:/usr/local/cli-file-manager/bin"
 ```
 Save the changes and reboot.
 <br><br>
