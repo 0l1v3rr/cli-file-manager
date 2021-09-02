@@ -32,7 +32,8 @@ func main() {
 		path = defaultPath
 	}
 
-	if err := ui.Init(); err != nil {
+	err2 := ui.Init()
+	if err2 != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
 	defer ui.Close()
