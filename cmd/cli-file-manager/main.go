@@ -54,7 +54,8 @@ func initWidgets() {
 
 	p := widgets.NewParagraph()
 	p.Title = "Help Menu"
-	p.Text = "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n[m](fg:green) - Memory Usage\n[f](fg:green) - Disk Information\n[^D (2 times)](fg:green) - Remove file\n[^F](fg:green) - Create file\n[^N](fg:green) - Create folder\n[^R](fg:green) - Rename file\n[^V](fg:green) - Launch VS Code"
+	pText := "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n[m](fg:green) - Memory Usage\n[f](fg:green) - Disk Information\n[^D (2 times)](fg:green) - Remove file\n[^F](fg:green) - Create file\n[^N](fg:green) - Create folder\n[^R](fg:green) - Rename file\n[^V](fg:green) - Launch VS Code\n[C](fg:green) - Copy file"
+	p.Text = pText
 	p.SetRect(cfm.GetCliWidth()/2, 0, cfm.GetCliWidth(), int(float64(cfm.GetCliHeight())*0.58))
 	p.BorderStyle.Fg = ui.ColorBlue
 	p.TitleStyle.Modifier = ui.ModifierBold
@@ -84,6 +85,7 @@ func initWidgets() {
 
 	ui.Render(l, p, p2, p3)
 
+	copyPath := ""
 	previousKey := ""
 	inputField := ""
 	originalName := ""
@@ -175,27 +177,32 @@ func initWidgets() {
 			}
 		case "<Escape>":
 			resetColors()
-			if fileCreatingInProgress {
-				fileCreatingInProgress = false
-				inputField = ""
-				l.SelectedRow = 0
-				l.Rows = l.Rows[:len(l.Rows)-1]
-				p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
-				p.Text = "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n[m](fg:green) - Memory Usage\n[f](fg:green) - Disk Information\n[^D (2 times)](fg:green) - Remove file\n[^F](fg:green) - Create file\n[^N](fg:green) - Create folder\n[^R](fg:green) - Rename file\n"
-			} else if dirCreatingInProgress {
-				dirCreatingInProgress = false
-				inputField = ""
-				l.SelectedRow = 0
-				l.Rows = l.Rows[:len(l.Rows)-1]
-				p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
-				p.Text = "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n[m](fg:green) - Memory Usage\n[f](fg:green) - Disk Information\n[^D (2 times)](fg:green) - Remove file\n[^F](fg:green) - Create file\n[^N](fg:green) - Create folder\n[^R](fg:green) - Rename file\n"
-			} else if renameInProgress {
-				renameInProgress = false
-				inputField = ""
-				l.Rows[l.SelectedRow] = originalName
-				originalName = ""
-				p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
-				p.Text = "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n[m](fg:green) - Memory Usage\n[f](fg:green) - Disk Information\n[^D (2 times)](fg:green) - Remove file\n[^F](fg:green) - Create file\n[^N](fg:green) - Create folder\n[^R](fg:green) - Rename file\n"
+			if copyPath != "" {
+				copyPath = ""
+				p.Text = pText
+			} else {
+				if fileCreatingInProgress {
+					fileCreatingInProgress = false
+					inputField = ""
+					l.SelectedRow = 0
+					l.Rows = l.Rows[:len(l.Rows)-1]
+					p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+					p.Text = pText
+				} else if dirCreatingInProgress {
+					dirCreatingInProgress = false
+					inputField = ""
+					l.SelectedRow = 0
+					l.Rows = l.Rows[:len(l.Rows)-1]
+					p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+					p.Text = pText
+				} else if renameInProgress {
+					renameInProgress = false
+					inputField = ""
+					l.Rows[l.SelectedRow] = originalName
+					originalName = ""
+					p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+					p.Text = pText
+				}
 			}
 		case "m":
 			if !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
@@ -206,6 +213,22 @@ func initWidgets() {
 			if !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
 				p3.Title = "Disk Information"
 				p3.Text = fmt.Sprintf("[All: ](fg:green) - %.2f GB\n[Used:](fg:green) - %.2f GB\n[Free:](fg:green) - %.2f GB", float64(disk.All)/float64(1024*1024*1024), float64(disk.Used)/float64(1024*1024*1024), float64(disk.Free)/float64(1024*1024*1024))
+			}
+		case "c":
+			if getFileName(l.SelectedRow)[len(getFileName(l.SelectedRow))-1] != '/' {
+				copyPath = fmt.Sprintf("%s/%s", path, getFileName(l.SelectedRow))
+				p.Text = fmt.Sprintf("[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n[m](fg:green) - Memory Usage\n[f](fg:green) - Disk Information\n[^D (2 times)](fg:green) - Remove file\n[^F](fg:green) - Create file\n[^N](fg:green) - Create folder\n[^R](fg:green) - Rename file\n[^V](fg:green) - Launch VS Code\n[C](fg:cyan) - Copied to clipboard ([%s](fg:cyan))\n[V](fg:green) - Paste", getFileName(l.SelectedRow))
+			}
+		case "v":
+			if copyPath != "" {
+				p.Text = "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n[m](fg:green) - Memory Usage\n[f](fg:green) - Disk Information\n[^D (2 times)](fg:green) - Remove file\n[^F](fg:green) - Create file\n[^N](fg:green) - Create folder\n[^R](fg:green) - Rename file\n[^V](fg:green) - Launch VS Code\n[C](fg:cyan) - Copying..."
+				cfm.Copy(copyPath, path)
+				p.Text = pText
+				copyPath = ""
+				l.Rows = cfm.ReadFiles(path)
+				ui.Render(l, p, p2, p3)
+			} else {
+				p.Text = pText
 			}
 		case "<Resize>":
 			l.SetRect(0, 0, cfm.GetCliWidth()/2, int(float64(cfm.GetCliHeight())*0.73))
@@ -266,7 +289,7 @@ func initWidgets() {
 						fileCreatingInProgress = false
 						resetColors()
 						p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
-						p.Text = "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n[m](fg:green) - Memory Usage\n[f](fg:green) - Disk Information\n[^D (2 times)](fg:green) - Remove file\n[^F](fg:green) - Create file\n[^N](fg:green) - Create folder\n[^R](fg:green) - Rename file\n"
+						p.Text = pText
 					}
 				}
 			} else if dirCreatingInProgress {
@@ -279,7 +302,7 @@ func initWidgets() {
 						dirCreatingInProgress = false
 						resetColors()
 						p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
-						p.Text = "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n[m](fg:green) - Memory Usage\n[f](fg:green) - Disk Information\n[^D (2 times)](fg:green) - Remove file\n[^F](fg:green) - Create file\n[^N](fg:green) - Create folder\n[^R](fg:green) - Rename file\n"
+						p.Text = pText
 					}
 				}
 			} else if renameInProgress {
@@ -294,7 +317,7 @@ func initWidgets() {
 						renameInProgress = false
 						resetColors()
 						p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
-						p.Text = "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n[m](fg:green) - Memory Usage\n[f](fg:green) - Disk Information\n[^D (2 times)](fg:green) - Remove file\n[^F](fg:green) - Create file\n[^N](fg:green) - Create folder\n[^R](fg:green) - Rename file\n"
+						p.Text = pText
 					}
 				}
 			}
