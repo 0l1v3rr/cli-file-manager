@@ -23,7 +23,7 @@ func main() {
 
 	defaultPath, err := os.Getwd()
 	if err != nil {
-		log.Println(err)
+		log.Fatalf("%v", err)
 	}
 
 	if len(os.Args) > 1 && os.Args[1] != "" {
@@ -229,8 +229,7 @@ func initWidgets() {
 							if len(splitted) == 2 {
 								path = "/"
 							} else {
-								splitted = splitted[:len(splitted)-1]
-								path = strings.Join(splitted, "/")
+								path = strings.Join(splitted[:len(splitted)-2], "/")
 							}
 						} else {
 							path = "/"
