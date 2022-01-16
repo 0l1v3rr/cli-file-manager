@@ -14,6 +14,8 @@ import (
 	"github.com/skratchdot/open-golang/open"
 )
 
+const VERSION = "v1.1"
+
 var (
 	path       string
 	l               = widgets.NewList()
@@ -43,7 +45,7 @@ func main() {
 }
 
 func initWidgets() {
-	l.Title = "CLI File Manager"
+	l.Title = fmt.Sprintf("CLI File Manager - %s", VERSION)
 	l.Rows = cfm.ReadFiles(path, showHidden)
 	l.TextStyle = ui.NewStyle(ui.ColorWhite)
 	l.WrapText = false

@@ -1,12 +1,14 @@
 # CLI File Manager
-<img src="./docs/screenshot.png">
+<img src="./docs/screenshot2.png">
 <br>
 This is a basic file manager that runs inside your terminal. <br>
+This tool is designed for Linux. <br>
 It's fully responsive and incredibly fast.
 
 ## Features
 - Browse directories/files
 - Disc usage panel
+- Memory usage panel
 - File and Folder information
 - Open files (With the default program of the OS)
 - Delete files or folders
@@ -15,6 +17,7 @@ It's fully responsive and incredibly fast.
 - Copy files
 - Responsive
 - Open VS Code 
+- Show/Hide hidden files
 
 ## Installation - Linux
 Download [Git](https://git-scm.com/downloads) and [Go](https://golang.org/dl/)<br>
