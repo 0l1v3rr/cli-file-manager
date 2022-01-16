@@ -15,8 +15,9 @@ import (
 )
 
 var (
-	path string
-	l    = widgets.NewList()
+	path       string
+	l               = widgets.NewList()
+	showHidden bool = true
 )
 
 func main() {
@@ -43,7 +44,7 @@ func main() {
 
 func initWidgets() {
 	l.Title = "CLI File Manager"
-	l.Rows = cfm.ReadFiles(path)
+	l.Rows = cfm.ReadFiles(path, showHidden)
 	l.TextStyle = ui.NewStyle(ui.ColorWhite)
 	l.WrapText = false
 	l.SetRect(0, 0, cfm.GetCliWidth()/2, int(float64(cfm.GetCliHeight())*0.73))
@@ -54,7 +55,7 @@ func initWidgets() {
 
 	p := widgets.NewParagraph()
 	p.Title = "Help Menu"
-	pText := "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n[m](fg:green) - Memory Usage\n[f](fg:green) - Disk Information\n[^D (2 times)](fg:green) - Remove file\n[^F](fg:green) - Create file\n[^N](fg:green) - Create folder\n[^R](fg:green) - Rename file\n[^V](fg:green) - Launch VS Code\n[C](fg:green) - Copy file"
+	pText := "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n[m](fg:green) - Memory Usage\n[f](fg:green) - Disk Information\n[^D (2 times)](fg:green) - Remove file\n[^F](fg:green) - Create file\n[^N](fg:green) - Create folder\n[^R](fg:green) - Rename file\n[^V](fg:green) - Launch VS Code\n[C](fg:green) - Copy file\n[h](fg:green) - Hide hidden files"
 	p.Text = pText
 	p.SetRect(cfm.GetCliWidth()/2, 0, cfm.GetCliWidth(), int(float64(cfm.GetCliHeight())*0.58))
 	p.BorderStyle.Fg = ui.ColorBlue
@@ -131,13 +132,13 @@ func initWidgets() {
 						}
 						err := os.Remove(filePath)
 						if err == nil {
-							l.Rows = cfm.ReadFiles(path)
+							l.Rows = cfm.ReadFiles(path, showHidden)
 							l.SelectedRow = 0
 							p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
 						} else {
 							err2 := os.RemoveAll(filePath)
 							if err2 == nil {
-								l.Rows = cfm.ReadFiles(path)
+								l.Rows = cfm.ReadFiles(path, showHidden)
 								l.SelectedRow = 0
 								p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
 							}
@@ -225,7 +226,7 @@ func initWidgets() {
 				cfm.Copy(copyPath, path)
 				p.Text = pText
 				copyPath = ""
-				l.Rows = cfm.ReadFiles(path)
+				l.Rows = cfm.ReadFiles(path, showHidden)
 				ui.Render(l, p, p2, p3)
 			} else {
 				p.Text = pText
@@ -241,6 +242,16 @@ func initWidgets() {
 			err := cmd.Run()
 			if err != nil {
 				log.Fatal(err)
+			}
+		case "h":
+			if !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress && copyPath == "" {
+				if showHidden {
+					p.Text = "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n[m](fg:green) - Memory Usage\n[f](fg:green) - Disk Information\n[^D (2 times)](fg:green) - Remove file\n[^F](fg:green) - Create file\n[^N](fg:green) - Create folder\n[^R](fg:green) - Rename file\n[^V](fg:green) - Launch VS Code\n[C](fg:green) - Copy file\n[h](fg:green) - Show hidden files"
+				} else {
+					p.Text = pText
+				}
+				showHidden = !showHidden
+				l.Rows = cfm.ReadFiles(path, showHidden)
 			}
 		case "<Enter>":
 			if !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
@@ -264,7 +275,7 @@ func initWidgets() {
 							path = fmt.Sprintf("%v/%v", path, selected)
 						}
 					}
-					l.Rows = cfm.ReadFiles(path)
+					l.Rows = cfm.ReadFiles(path, showHidden)
 
 					l.SelectedRow = 0
 					l.SelectedRowStyle.Fg = ui.ColorBlue
@@ -283,7 +294,7 @@ func initWidgets() {
 				if len(inputField) >= 3 {
 					err := ioutil.WriteFile(fmt.Sprintf("%v/%v", path, inputField), []byte(""), 0755)
 					if err == nil {
-						l.Rows = cfm.ReadFiles(path)
+						l.Rows = cfm.ReadFiles(path, showHidden)
 						l.SelectedRow = 0
 						inputField = ""
 						fileCreatingInProgress = false
@@ -296,7 +307,7 @@ func initWidgets() {
 				if len(inputField) >= 3 {
 					err := os.Mkdir(fmt.Sprintf("%v/%v", path, inputField), 0755)
 					if err == nil {
-						l.Rows = cfm.ReadFiles(path)
+						l.Rows = cfm.ReadFiles(path, showHidden)
 						l.SelectedRow = 0
 						inputField = ""
 						dirCreatingInProgress = false
@@ -310,7 +321,7 @@ func initWidgets() {
 					original := getFileNameByFullName(originalName)
 					err := os.Rename(fmt.Sprintf("%v/%v", path, original), fmt.Sprintf("%v/%v", path, inputField))
 					if err == nil {
-						l.Rows = cfm.ReadFiles(path)
+						l.Rows = cfm.ReadFiles(path, showHidden)
 						inputField = ""
 						originalName = ""
 						original = ""
