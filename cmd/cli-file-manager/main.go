@@ -27,6 +27,7 @@ func main() {
 	defaultPath, err := os.Getwd()
 	if err != nil {
 		log.Fatalf("%v", err)
+		return
 	}
 
 	if len(os.Args) > 1 && os.Args[1] != "" {
@@ -38,6 +39,7 @@ func main() {
 	err2 := ui.Init()
 	if err2 != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
+		return
 	}
 	defer ui.Close()
 
@@ -57,7 +59,21 @@ func initWidgets() {
 
 	p := widgets.NewParagraph()
 	p.Title = "Help Menu"
-	pText := "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n[m](fg:green) - Memory Usage\n[f](fg:green) - Disk Information\n[^D (2 times)](fg:green) - Remove file\n[^F](fg:green) - Create file\n[^N](fg:green) - Create folder\n[^R](fg:green) - Rename file\n[^V](fg:green) - Launch VS Code\n[C](fg:green) - Copy file\n[h](fg:green) - Hide hidden files"
+
+	pText := `[↑](fg:green) - Scroll Up
+	[↓](fg:green) - Scroll Down
+	[q](fg:green) - Quit
+	[Enter](fg:green) - Open
+	[m](fg:green) - Memory Usage
+	[f](fg:green) - Disk Information
+	[^D (2 times)](fg:green) - Remove file
+	[^F](fg:green) - Create file
+	[^N](fg:green) - Create folder
+	[^R](fg:green) - Rename file
+	[^V](fg:green) - Launch VS Code
+	[C](fg:green) - Copy file
+	[h](fg:green) - Hide hidden files
+	`
 	p.Text = pText
 	p.SetRect(cfm.GetCliWidth()/2, 0, cfm.GetCliWidth(), int(float64(cfm.GetCliHeight())*0.58))
 	p.BorderStyle.Fg = ui.ColorBlue
@@ -72,7 +88,10 @@ func initWidgets() {
 		p3.Text = cfm.ReadMemStats()
 	} else {
 		p3.Title = "Disk Information"
-		p3.Text = fmt.Sprintf("[All: ](fg:green) - %.2f GB\n[Used:](fg:green) - %.2f GB\n[Free:](fg:green) - %.2f GB", float64(disk.All)/float64(1024*1024*1024), float64(disk.Used)/float64(1024*1024*1024), float64(disk.Free)/float64(1024*1024*1024))
+		p3.Text = fmt.Sprintf(`[All: ](fg:green) - %.2f GB
+		[Used:](fg:green) - %.2f GB
+		[Free:](fg:green) - %.2f GB
+		`, float64(disk.All)/float64(1024*1024*1024), float64(disk.Used)/float64(1024*1024*1024), float64(disk.Free)/float64(1024*1024*1024))
 	}
 	p3.SetRect(cfm.GetCliWidth()/2, int(float64(cfm.GetCliHeight())*0.73), cfm.GetCliWidth(), int(float64(cfm.GetCliHeight())*0.58))
 	p3.BorderStyle.Fg = ui.ColorBlue
@@ -96,6 +115,7 @@ func initWidgets() {
 	dirCreatingInProgress := false
 	renameInProgress := false
 	uiEvents := ui.PollEvents()
+
 	for {
 		e := <-uiEvents
 		switch e.ID {
@@ -215,16 +235,44 @@ func initWidgets() {
 		case "f":
 			if !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
 				p3.Title = "Disk Information"
-				p3.Text = fmt.Sprintf("[All: ](fg:green) - %.2f GB\n[Used:](fg:green) - %.2f GB\n[Free:](fg:green) - %.2f GB", float64(disk.All)/float64(1024*1024*1024), float64(disk.Used)/float64(1024*1024*1024), float64(disk.Free)/float64(1024*1024*1024))
+				p3.Text = fmt.Sprintf(`[All: ](fg:green) - %.2f GB
+				[Used:](fg:green) - %.2f GB
+				[Free:](fg:green) - %.2f GB
+				`, float64(disk.All)/float64(1024*1024*1024), float64(disk.Used)/float64(1024*1024*1024), float64(disk.Free)/float64(1024*1024*1024))
 			}
 		case "c":
 			if getFileName(l.SelectedRow)[len(getFileName(l.SelectedRow))-1] != '/' {
 				copyPath = fmt.Sprintf("%s/%s", path, getFileName(l.SelectedRow))
-				p.Text = fmt.Sprintf("[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n[m](fg:green) - Memory Usage\n[f](fg:green) - Disk Information\n[^D (2 times)](fg:green) - Remove file\n[^F](fg:green) - Create file\n[^N](fg:green) - Create folder\n[^R](fg:green) - Rename file\n[^V](fg:green) - Launch VS Code\n[C](fg:cyan) - Copied to clipboard ([%s](fg:cyan))\n[V](fg:green) - Paste", getFileName(l.SelectedRow))
+				p.Text = fmt.Sprintf(`[↑](fg:green) - Scroll Up
+				[↓](fg:green) - Scroll Down
+				[q](fg:green) - Quit
+				[Enter](fg:green) - Open
+				[m](fg:green) - Memory Usage
+				[f](fg:green) - Disk Information
+				[^D (2 times)](fg:green) - Remove file
+				[^F](fg:green) - Create file
+				[^N](fg:green) - Create folder
+				[^R](fg:green) - Rename file
+				[^V](fg:green) - Launch VS Code
+				[C](fg:cyan) - Copied to clipboard ([%s](fg:cyan))
+				[V](fg:green) - Paste
+				`, getFileName(l.SelectedRow))
 			}
 		case "v":
 			if copyPath != "" {
-				p.Text = "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n[m](fg:green) - Memory Usage\n[f](fg:green) - Disk Information\n[^D (2 times)](fg:green) - Remove file\n[^F](fg:green) - Create file\n[^N](fg:green) - Create folder\n[^R](fg:green) - Rename file\n[^V](fg:green) - Launch VS Code\n[C](fg:cyan) - Copying..."
+				p.Text = `[↑](fg:green) - Scroll Up
+				[↓](fg:green) - Scroll Down
+				[q](fg:green) - Quit
+				[Enter](fg:green) - Open
+				[m](fg:green) - Memory Usage
+				[f](fg:green) - Disk Information
+				[^D (2 times)](fg:green) - Remove file
+				[^F](fg:green) - Create file
+				[^N](fg:green) - Create folder
+				[^R](fg:green) - Rename file
+				[^V](fg:green) - Launch VS Code
+				[C](fg:cyan) - Copying...
+				`
 				cfm.Copy(copyPath, path)
 				p.Text = pText
 				copyPath = ""
@@ -248,7 +296,20 @@ func initWidgets() {
 		case "h":
 			if !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress && copyPath == "" {
 				if showHidden {
-					p.Text = "[↑](fg:green) - Scroll Up\n[↓](fg:green) - Scroll Down\n[q](fg:green) - Quit\n[Enter](fg:green) - Open\n[m](fg:green) - Memory Usage\n[f](fg:green) - Disk Information\n[^D (2 times)](fg:green) - Remove file\n[^F](fg:green) - Create file\n[^N](fg:green) - Create folder\n[^R](fg:green) - Rename file\n[^V](fg:green) - Launch VS Code\n[C](fg:green) - Copy file\n[h](fg:green) - Show hidden files"
+					p.Text = `[↑](fg:green) - Scroll Up
+					[↓](fg:green) - Scroll Down
+					[q](fg:green) - Quit
+					[Enter](fg:green) - Open
+					[m](fg:green) - Memory Usage
+					[f](fg:green) - Disk Information
+					[^D (2 times)](fg:green) - Remove file
+					[^F](fg:green) - Create file
+					[^N](fg:green) - Create folder
+					[^R](fg:green) - Rename file
+					[^V](fg:green) - Launch VS Code
+					[C](fg:green) - Copy file
+					[h](fg:green) - Show hidden files
+					`
 				} else {
 					p.Text = pText
 				}
