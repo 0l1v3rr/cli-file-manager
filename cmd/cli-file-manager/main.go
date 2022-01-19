@@ -19,6 +19,7 @@ const VERSION = "v1.1"
 var (
 	path       string
 	l               = widgets.NewList()
+	p3              = widgets.NewParagraph()
 	showHidden bool = true
 )
 
@@ -81,7 +82,6 @@ func initWidgets() {
 
 	disk := cfm.DiskUsage("/")
 
-	p3 := widgets.NewParagraph()
 	json, err := cfm.ReadJson()
 	if json == "memory" || err != nil {
 		p3.Title = "Memory Usage"
@@ -163,8 +163,12 @@ func initWidgets() {
 								l.Rows = cfm.ReadFiles(path, showHidden)
 								l.SelectedRow = 0
 								p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+							} else {
+								errorMsg("An unknown error occurred while deleting the file.")
 							}
 						}
+					} else {
+						errorMsg("You can't delete this!")
 					}
 				}
 			}
@@ -291,7 +295,7 @@ func initWidgets() {
 			cmd := exec.Command("code", path)
 			err := cmd.Run()
 			if err != nil {
-				log.Fatal(err)
+				errorMsg("Unable to open VS Code.")
 			}
 		case "h":
 			if !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress && copyPath == "" {
@@ -364,6 +368,8 @@ func initWidgets() {
 						resetColors()
 						p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
 						p.Text = pText
+					} else {
+						errorMsg("An unknown error occurred while creating the file.")
 					}
 				}
 			} else if dirCreatingInProgress {
@@ -377,6 +383,8 @@ func initWidgets() {
 						resetColors()
 						p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
 						p.Text = pText
+					} else {
+						errorMsg("An unknown error occurred while creating the folder.")
 					}
 				}
 			} else if renameInProgress {
@@ -392,6 +400,8 @@ func initWidgets() {
 						resetColors()
 						p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
 						p.Text = pText
+					} else {
+						errorMsg("An unknown error occurred while renaming the file.")
 					}
 				}
 			}
@@ -442,6 +452,11 @@ func initWidgets() {
 
 		ui.Render(l, p, p2, p3)
 	}
+}
+
+func errorMsg(err string) {
+	p3.Title = "Error"
+	p3.Text = fmt.Sprintf("[%s](fg:red)", err)
 }
 
 func getFileName(n int) string {

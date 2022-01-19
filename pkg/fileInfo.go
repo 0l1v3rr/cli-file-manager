@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 )
 
 func GetFileInformations(p string) string {
@@ -28,7 +29,7 @@ func GetFileInformations(p string) string {
 	}
 	path = strings.ReplaceAll(path, "//", "/")
 
-	return fmt.Sprintf("[Name:](fg:green) %v\n[Path:](fg:green) %v\n[Size:](fg:green) %v byte\n[Permission:](fg:green) %v\n[Directory:](fg:green) %v\n[Last Modified:](fg:green) %v", fileStat.Name(), path, fileStat.Size(), fileStat.Mode(), isDir, fileStat.ModTime())
+	return fmt.Sprintf("[Name:](fg:green) %v\n[Path:](fg:green) %v\n[Size:](fg:green) %v byte\n[Permission:](fg:green) %v\n[Directory:](fg:green) %v\n[Last Modified:](fg:green) %v", fileStat.Name(), path, fileStat.Size(), fileStat.Mode(), isDir, fileStat.ModTime().Format(time.RFC1123))
 }
 
 func EmptyFileInfo() string {
