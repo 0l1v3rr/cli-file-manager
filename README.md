@@ -1,5 +1,5 @@
 # CLI File Manager
-<img src="./docs/screenshot2.png">
+<img src="./docs/screenshot3.png">
 <br>
 This is a basic file manager that runs inside your terminal. <br>
 This tool is designed for Linux. <br>
