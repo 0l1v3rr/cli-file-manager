@@ -14,6 +14,7 @@ It's fully responsive and incredibly fast.
 - Delete files or folders
 - Rename files or folders
 - Create files or folders
+- Duplicate files
 - Copy files
 - Responsive
 - Open VS Code 

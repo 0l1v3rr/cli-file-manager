@@ -71,6 +71,7 @@ func initWidgets() {
 	[^F](fg:green) - Create file
 	[^N](fg:green) - Create folder
 	[^R](fg:green) - Rename file
+	[^L](fg:green) - Duplicate file
 	[^V](fg:green) - Launch VS Code
 	[C](fg:green) - Copy file
 	[h](fg:green) - Hide hidden files
@@ -140,6 +141,18 @@ func initWidgets() {
 			if !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
 				l.ScrollBottom()
 				p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+			}
+		case "<C-l>":
+			if !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
+				selected := getFileName(l.SelectedRow)
+				if selected[len(selected)-1] != '/' {
+					err := cfm.Duplicate(fmt.Sprintf("%s/%s", path, selected), path)
+					if err != nil {
+						errorMsg("An unknown error occurred while duplicating the file.")
+					}
+					l.Rows = cfm.ReadFiles(path, showHidden)
+					ui.Render(l, p, p2, p3)
+				}
 			}
 		case "<C-d>":
 			if !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
@@ -257,6 +270,7 @@ func initWidgets() {
 				[^F](fg:green) - Create file
 				[^N](fg:green) - Create folder
 				[^R](fg:green) - Rename file
+				[^L](fg:green) - Duplicate file
 				[^V](fg:green) - Launch VS Code
 				[C](fg:cyan) - Copied to clipboard ([%s](fg:cyan))
 				[V](fg:green) - Paste
@@ -274,6 +288,7 @@ func initWidgets() {
 				[^F](fg:green) - Create file
 				[^N](fg:green) - Create folder
 				[^R](fg:green) - Rename file
+				[^L](fg:green) - Duplicate file
 				[^V](fg:green) - Launch VS Code
 				[C](fg:cyan) - Copying...
 				`
@@ -310,6 +325,7 @@ func initWidgets() {
 					[^F](fg:green) - Create file
 					[^N](fg:green) - Create folder
 					[^R](fg:green) - Rename file
+					[^L](fg:green) - Duplicate file
 					[^V](fg:green) - Launch VS Code
 					[C](fg:green) - Copy file
 					[h](fg:green) - Show hidden files
