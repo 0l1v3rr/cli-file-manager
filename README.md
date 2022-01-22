@@ -1,5 +1,5 @@
 # CLI File Manager
-<img src="./docs/screenshot3.png">
+<img src="./docs/cfm.gif">
 <br>
 This is a basic file manager that runs inside your terminal. <br>
 This tool is designed for Linux. <br>
@@ -28,6 +28,7 @@ Download [Git](https://git-scm.com/downloads) and [Go](https://golang.org/dl/)<b
 cd /usr/local
 git clone https://github.com/0l1v3rr/cli-file-manager.git
 cd cli-file-manager
+# The build may take a couple of tries
 make build
 export PATH="$PATH:/usr/local/cli-file-manager/bin"
 ```
