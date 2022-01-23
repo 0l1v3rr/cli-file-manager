@@ -64,6 +64,7 @@ func initWidgets() {
 	[^R](fg:green) - Rename file
 	[^L](fg:green) - Duplicate file
 	[^V](fg:green) - Launch VS Code
+	[^T](fg:green) - Read file content
 	[C](fg:green) - Copy file
 	[h](fg:green) - Hide hidden files
 	`
@@ -321,6 +322,7 @@ func initWidgets() {
 					[^R](fg:green) - Rename file
 					[^L](fg:green) - Duplicate file
 					[^V](fg:green) - Launch VS Code
+					[^T](fg:green) - Read file content
 					[C](fg:green) - Copy file
 					[h](fg:green) - Show hidden files
 					`
