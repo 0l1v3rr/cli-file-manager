@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -19,8 +20,11 @@ const VERSION = "v1.1"
 var (
 	path       string
 	l               = widgets.NewList()
+	p               = widgets.NewParagraph()
+	p2              = widgets.NewParagraph()
 	p3              = widgets.NewParagraph()
 	showHidden bool = true
+	catMode    bool = false
 )
 
 func main() {
@@ -48,19 +52,6 @@ func main() {
 }
 
 func initWidgets() {
-	l.Title = fmt.Sprintf("CLI File Manager - %s", VERSION)
-	l.Rows = cfm.ReadFiles(path, showHidden)
-	l.TextStyle = ui.NewStyle(ui.ColorWhite)
-	l.WrapText = false
-	l.SetRect(0, 0, cfm.GetCliWidth()/2, int(float64(cfm.GetCliHeight())*0.73))
-	l.BorderStyle.Fg = ui.ColorBlue
-	l.TitleStyle.Modifier = ui.ModifierBold
-	l.SelectedRowStyle.Fg = ui.ColorBlue
-	l.SelectedRowStyle.Modifier = ui.ModifierBold
-
-	p := widgets.NewParagraph()
-	p.Title = "Help Menu"
-
 	pText := `[↑](fg:green) - Scroll Up
 	[↓](fg:green) - Scroll Down
 	[q](fg:green) - Quit
@@ -76,38 +67,11 @@ func initWidgets() {
 	[C](fg:green) - Copy file
 	[h](fg:green) - Hide hidden files
 	`
-	p.Text = pText
-	p.SetRect(cfm.GetCliWidth()/2, 0, cfm.GetCliWidth(), int(float64(cfm.GetCliHeight())*0.58))
-	p.BorderStyle.Fg = ui.ColorBlue
-	p.TitleStyle.Modifier = ui.ModifierBold
 
 	disk := cfm.DiskUsage("/")
+	initItems(pText, disk)
 
-	json, err := cfm.ReadJson()
-	if json == "memory" || err != nil {
-		p3.Title = "Memory Usage"
-		p3.Text = cfm.ReadMemStats()
-	} else {
-		p3.Title = "Disk Information"
-		p3.Text = fmt.Sprintf(`[All: ](fg:green) - %.2f GB
-		[Used:](fg:green) - %.2f GB
-		[Free:](fg:green) - %.2f GB
-		`, float64(disk.All)/float64(1024*1024*1024), float64(disk.Used)/float64(1024*1024*1024), float64(disk.Free)/float64(1024*1024*1024))
-	}
-	p3.SetRect(cfm.GetCliWidth()/2, int(float64(cfm.GetCliHeight())*0.73), cfm.GetCliWidth(), int(float64(cfm.GetCliHeight())*0.58))
-	p3.BorderStyle.Fg = ui.ColorBlue
-	p3.TitleStyle.Modifier = ui.ModifierBold
-
-	p2 := widgets.NewParagraph()
-	p2.Title = "File Information"
-	p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
-	p2.SetRect(0, cfm.GetCliHeight(), cfm.GetCliWidth(), int(float64(cfm.GetCliHeight())*0.73))
-	p2.BorderStyle.Fg = ui.ColorBlue
-	p2.WrapText = false
-	p2.TitleStyle.Modifier = ui.ModifierBold
-
-	ui.Render(l, p, p2, p3)
-
+	selectedRowNum := 0
 	copyPath := ""
 	previousKey := ""
 	inputField := ""
@@ -125,25 +89,33 @@ func initWidgets() {
 		case "<Down>":
 			if !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
 				l.ScrollDown()
-				p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+				if !catMode {
+					p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+				}
 			}
 		case "<Up>":
 			if !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
 				l.ScrollUp()
-				p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+				if !catMode {
+					p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+				}
 			}
 		case "<Home>":
 			if !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
 				l.ScrollTop()
-				p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+				if !catMode {
+					p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+				}
 			}
 		case "<End>":
 			if !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
 				l.ScrollBottom()
-				p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+				if !catMode {
+					p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+				}
 			}
 		case "<C-l>":
-			if !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
+			if !catMode && !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
 				selected := getFileName(l.SelectedRow)
 				if selected[len(selected)-1] != '/' {
 					err := cfm.Duplicate(fmt.Sprintf("%s/%s", path, selected), path)
@@ -154,8 +126,15 @@ func initWidgets() {
 					ui.Render(l, p, p2, p3)
 				}
 			}
+		case "<C-t>":
+			selected := getFileName(l.SelectedRow)
+			selectedRowNum = l.SelectedRow
+			if selected[len(selected)-1] != '/' {
+				catMode = true
+				cat(path, selected)
+			}
 		case "<C-d>":
-			if !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
+			if !catMode && !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
 				if previousKey == "<C-d>" {
 					selected := getFileName(l.SelectedRow)
 					if selected != ".." && selected != "../" {
@@ -186,7 +165,7 @@ func initWidgets() {
 				}
 			}
 		case "<C-f>":
-			if !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
+			if !catMode && !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
 				fileCreatingInProgress = true
 				l.Rows = append(l.Rows, fmt.Sprintf("[?]: %v", inputField))
 				l.SelectedRow = len(l.Rows) - 1
@@ -195,7 +174,7 @@ func initWidgets() {
 				p.Text = "[Esc](fg:green) - Cancel\n[Enter](fg:green) - Apply Changes\n"
 			}
 		case "<C-n>":
-			if !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
+			if !catMode && !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
 				dirCreatingInProgress = true
 				l.Rows = append(l.Rows, fmt.Sprintf("[$]: %v", inputField))
 				l.SelectedRow = len(l.Rows) - 1
@@ -204,7 +183,7 @@ func initWidgets() {
 				p.Text = "[Esc](fg:green) - Cancel\n[Enter](fg:green) - Apply Changes\n"
 			}
 		case "<C-r>":
-			if !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
+			if !catMode && !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
 				renameInProgress = true
 				originalName = l.Rows[l.SelectedRow]
 				inputField = getFileName(l.SelectedRow)
@@ -220,6 +199,8 @@ func initWidgets() {
 			if copyPath != "" {
 				copyPath = ""
 				p.Text = pText
+			} else if catMode {
+				backToCfm(pText, disk, selectedRowNum)
 			} else {
 				if fileCreatingInProgress {
 					fileCreatingInProgress = false
@@ -245,12 +226,12 @@ func initWidgets() {
 				}
 			}
 		case "m":
-			if !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
+			if !catMode && !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
 				p3.Title = "Memory Usage"
 				p3.Text = cfm.ReadMemStats()
 			}
 		case "f":
-			if !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
+			if !catMode && !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
 				p3.Title = "Disk Information"
 				p3.Text = fmt.Sprintf(`[All: ](fg:green) - %.2f GB
 				[Used:](fg:green) - %.2f GB
@@ -258,62 +239,75 @@ func initWidgets() {
 				`, float64(disk.All)/float64(1024*1024*1024), float64(disk.Used)/float64(1024*1024*1024), float64(disk.Free)/float64(1024*1024*1024))
 			}
 		case "c":
-			if getFileName(l.SelectedRow)[len(getFileName(l.SelectedRow))-1] != '/' {
-				copyPath = fmt.Sprintf("%s/%s", path, getFileName(l.SelectedRow))
-				p.Text = fmt.Sprintf(`[↑](fg:green) - Scroll Up
-				[↓](fg:green) - Scroll Down
-				[q](fg:green) - Quit
-				[Enter](fg:green) - Open
-				[m](fg:green) - Memory Usage
-				[f](fg:green) - Disk Information
-				[^D (2 times)](fg:green) - Remove file
-				[^F](fg:green) - Create file
-				[^N](fg:green) - Create folder
-				[^R](fg:green) - Rename file
-				[^L](fg:green) - Duplicate file
-				[^V](fg:green) - Launch VS Code
-				[C](fg:cyan) - Copied to clipboard ([%s](fg:cyan))
-				[V](fg:green) - Paste
-				`, getFileName(l.SelectedRow))
+			if !catMode {
+				if getFileName(l.SelectedRow)[len(getFileName(l.SelectedRow))-1] != '/' {
+					copyPath = fmt.Sprintf("%s/%s", path, getFileName(l.SelectedRow))
+					p.Text = fmt.Sprintf(`[↑](fg:green) - Scroll Up
+					[↓](fg:green) - Scroll Down
+					[q](fg:green) - Quit
+					[Enter](fg:green) - Open
+					[m](fg:green) - Memory Usage
+					[f](fg:green) - Disk Information
+					[^D (2 times)](fg:green) - Remove file
+					[^F](fg:green) - Create file
+					[^N](fg:green) - Create folder
+					[^R](fg:green) - Rename file
+					[^L](fg:green) - Duplicate file
+					[^V](fg:green) - Launch VS Code
+					[C](fg:cyan) - Copied to clipboard ([%s](fg:cyan))
+					[V](fg:green) - Paste
+					`, getFileName(l.SelectedRow))
+				}
 			}
 		case "v":
-			if copyPath != "" {
-				p.Text = `[↑](fg:green) - Scroll Up
-				[↓](fg:green) - Scroll Down
-				[q](fg:green) - Quit
-				[Enter](fg:green) - Open
-				[m](fg:green) - Memory Usage
-				[f](fg:green) - Disk Information
-				[^D (2 times)](fg:green) - Remove file
-				[^F](fg:green) - Create file
-				[^N](fg:green) - Create folder
-				[^R](fg:green) - Rename file
-				[^L](fg:green) - Duplicate file
-				[^V](fg:green) - Launch VS Code
-				[C](fg:cyan) - Copying...
-				`
-				cfm.Copy(copyPath, path)
-				p.Text = pText
-				copyPath = ""
-				l.Rows = cfm.ReadFiles(path, showHidden)
-				ui.Render(l, p, p2, p3)
-			} else {
-				p.Text = pText
+			if !catMode {
+				if copyPath != "" {
+					p.Text = `[↑](fg:green) - Scroll Up
+					[↓](fg:green) - Scroll Down
+					[q](fg:green) - Quit
+					[Enter](fg:green) - Open
+					[m](fg:green) - Memory Usage
+					[f](fg:green) - Disk Information
+					[^D (2 times)](fg:green) - Remove file
+					[^F](fg:green) - Create file
+					[^N](fg:green) - Create folder
+					[^R](fg:green) - Rename file
+					[^L](fg:green) - Duplicate file
+					[^V](fg:green) - Launch VS Code
+					[C](fg:cyan) - Copying...
+					`
+					cfm.Copy(copyPath, path)
+					p.Text = pText
+					copyPath = ""
+					l.Rows = cfm.ReadFiles(path, showHidden)
+					ui.Render(l, p, p2, p3)
+				} else {
+					p.Text = pText
+				}
 			}
 		case "<Resize>":
-			l.SetRect(0, 0, cfm.GetCliWidth()/2, int(float64(cfm.GetCliHeight())*0.73))
-			p.SetRect(cfm.GetCliWidth()/2, 0, cfm.GetCliWidth(), int(float64(cfm.GetCliHeight())*0.58))
-			p2.SetRect(0, cfm.GetCliHeight(), cfm.GetCliWidth(), int(float64(cfm.GetCliHeight())*0.73))
-			p3.SetRect(cfm.GetCliWidth()/2, int(float64(cfm.GetCliHeight())*0.73), cfm.GetCliWidth(), int(float64(cfm.GetCliHeight())*0.58))
-			ui.Render(l, p, p2, p3)
+			if !catMode {
+				l.SetRect(0, 0, cfm.GetCliWidth()/2, int(float64(cfm.GetCliHeight())*0.73))
+				p.SetRect(cfm.GetCliWidth()/2, 0, cfm.GetCliWidth(), int(float64(cfm.GetCliHeight())*0.58))
+				p2.SetRect(0, cfm.GetCliHeight(), cfm.GetCliWidth(), int(float64(cfm.GetCliHeight())*0.73))
+				p3.SetRect(cfm.GetCliWidth()/2, int(float64(cfm.GetCliHeight())*0.73), cfm.GetCliWidth(), int(float64(cfm.GetCliHeight())*0.58))
+				ui.Render(l, p, p2, p3)
+			} else {
+				p.SetRect(0, 0, cfm.GetCliWidth(), 3)
+				l.SetRect(0, 3, cfm.GetCliWidth(), int(float64(cfm.GetCliHeight())))
+				p2.SetRect(cfm.GetCliWidth()+1, cfm.GetCliHeight()+1, cfm.GetCliWidth()+1, cfm.GetCliHeight()+1)
+				p3.SetRect(cfm.GetCliWidth()+1, cfm.GetCliHeight()+1, cfm.GetCliWidth()+1, cfm.GetCliHeight()+1)
+			}
 		case "<C-v>":
-			cmd := exec.Command("code", path)
-			err := cmd.Run()
-			if err != nil {
-				errorMsg("Unable to open VS Code.")
+			if !catMode && !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
+				cmd := exec.Command("code", path)
+				err := cmd.Run()
+				if err != nil {
+					errorMsg("Unable to open VS Code.")
+				}
 			}
 		case "h":
-			if !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress && copyPath == "" {
+			if !catMode && !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress && copyPath == "" {
 				if showHidden {
 					p.Text = `[↑](fg:green) - Scroll Up
 					[↓](fg:green) - Scroll Down
@@ -337,7 +331,7 @@ func initWidgets() {
 				l.Rows = cfm.ReadFiles(path, showHidden)
 			}
 		case "<Enter>":
-			if !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
+			if !catMode && !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
 				selected := getFileName(l.SelectedRow)
 				if selected[len(selected)-1] == '/' {
 					if selected == "../" {
@@ -458,7 +452,7 @@ func initWidgets() {
 			}
 		}
 
-		if !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
+		if !catMode && !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
 			if previousKey == "<C-d>" {
 				previousKey = ""
 			} else {
@@ -490,6 +484,92 @@ func getFileNameByFullName(s string) string {
 	result := strings.Join(sliced, " ")
 
 	return result
+}
+
+func initItems(pText string, disk cfm.Status) {
+	l.Title = fmt.Sprintf("CLI File Manager - %s", VERSION)
+	l.Rows = cfm.ReadFiles(path, showHidden)
+	l.TextStyle = ui.NewStyle(ui.ColorWhite)
+	l.WrapText = false
+	l.SetRect(0, 0, cfm.GetCliWidth()/2, int(float64(cfm.GetCliHeight())*0.73))
+	l.BorderStyle.Fg = ui.ColorBlue
+	l.TitleStyle.Modifier = ui.ModifierBold
+	l.SelectedRowStyle.Fg = ui.ColorBlue
+	l.SelectedRowStyle.Modifier = ui.ModifierBold
+
+	p.Title = "Help Menu"
+	p.Text = pText
+	p.SetRect(cfm.GetCliWidth()/2, 0, cfm.GetCliWidth(), int(float64(cfm.GetCliHeight())*0.58))
+	p.BorderStyle.Fg = ui.ColorBlue
+	p.TitleStyle.Modifier = ui.ModifierBold
+
+	json, err := cfm.ReadJson()
+	if json == "memory" || err != nil {
+		p3.Title = "Memory Usage"
+		p3.Text = cfm.ReadMemStats()
+	} else {
+		p3.Title = "Disk Information"
+		p3.Text = fmt.Sprintf(`[All: ](fg:green) - %.2f GB
+		[Used:](fg:green) - %.2f GB
+		[Free:](fg:green) - %.2f GB
+		`, float64(disk.All)/float64(1024*1024*1024), float64(disk.Used)/float64(1024*1024*1024), float64(disk.Free)/float64(1024*1024*1024))
+	}
+	p3.Border = true
+	p3.SetRect(cfm.GetCliWidth()/2, int(float64(cfm.GetCliHeight())*0.73), cfm.GetCliWidth(), int(float64(cfm.GetCliHeight())*0.58))
+	p3.BorderStyle.Fg = ui.ColorBlue
+	p3.TitleStyle.Modifier = ui.ModifierBold
+
+	p2.Border = true
+	p2.Title = "File Information"
+	p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+	p2.SetRect(0, cfm.GetCliHeight(), cfm.GetCliWidth(), int(float64(cfm.GetCliHeight())*0.73))
+	p2.BorderStyle.Fg = ui.ColorBlue
+	p2.WrapText = false
+	p2.TitleStyle.Modifier = ui.ModifierBold
+
+	ui.Render(l, p, p2, p3)
+}
+
+func backToCfm(pText string, disk cfm.Status, selected int) {
+	initItems(pText, disk)
+	l.SelectedRow = selected
+	catMode = false
+}
+
+func cat(path string, filename string) {
+	filePath := fmt.Sprintf("%s/%s", path, filename)
+
+	p2.Title = ""
+	p2.Text = ""
+	p2.Border = false
+
+	p3.Text = ""
+	p3.Title = ""
+	p3.Border = false
+
+	l.SelectedRow = 0
+	l.Title = filename
+	p.Text = "[Esc](fg:green) - Back  |  [↑](fg:green) - Scroll Up  |  [↓](fg:green) - Scroll Down"
+	p.SetRect(0, 0, cfm.GetCliWidth(), 3)
+	l.SetRect(0, 3, cfm.GetCliWidth(), int(float64(cfm.GetCliHeight())))
+
+	p2.SetRect(cfm.GetCliWidth()+1, cfm.GetCliHeight()+1, cfm.GetCliWidth()+1, cfm.GetCliHeight()+1)
+	p3.SetRect(cfm.GetCliWidth()+1, cfm.GetCliHeight()+1, cfm.GetCliWidth()+1, cfm.GetCliHeight()+1)
+
+	file, err := os.Open(filePath)
+	if err != nil {
+		errorMsg("Unable to open this file.")
+	}
+	defer file.Close()
+
+	lines := []string{}
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+	l.Rows = lines
+
+	ui.Render(l, p, p2, p3)
 }
 
 func textFieldStyle() {
