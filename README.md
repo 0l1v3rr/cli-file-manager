@@ -20,6 +20,7 @@ It's fully responsive and incredibly fast.
 - Responsive
 - Open VS Code 
 - Show/Hide hidden files
+- Show/Hide file extensions
 
 ## Installation - Linux
 Download [Git](https://git-scm.com/downloads) and [Go](https://golang.org/dl/)<br>

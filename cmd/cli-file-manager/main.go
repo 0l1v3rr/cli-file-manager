@@ -68,6 +68,7 @@ func initWidgets() {
 	[^T](fg:green) - Read file content
 	[C](fg:green) - Copy file
 	[h](fg:green) - Hide hidden files
+	[e](fg:green) - Hide file extension
 	`
 
 	disk := cfm.DiskUsage("/")
@@ -326,7 +327,9 @@ func initWidgets() {
 					[^T](fg:green) - Read file content
 					[C](fg:green) - Copy file
 					[h](fg:green) - Show hidden files
+					[e](fg:green) - Hide file extension
 					`
+					showEx = true
 				} else {
 					p.Text = pText
 				}
@@ -338,9 +341,27 @@ func initWidgets() {
 				showEx = !showEx
 				if showEx {
 					l.Rows = cfm.ReadFiles(path, showHidden)
+					p.Text = pText
 				} else {
 					l.Rows = cfm.NoEx(path)
-					p.Text = pText
+					p.Text = `[↑](fg:green) - Scroll Up
+					[↓](fg:green) - Scroll Down
+					[q](fg:green) - Quit
+					[Enter](fg:green) - Open
+					[m](fg:green) - Memory Usage
+					[f](fg:green) - Disk Information
+					[^D (2 times)](fg:green) - Remove file
+					[^F](fg:green) - Create file
+					[^N](fg:green) - Create folder
+					[^R](fg:green) - Rename file
+					[^L](fg:green) - Duplicate file
+					[^V](fg:green) - Launch VS Code
+					[^T](fg:green) - Read file content
+					[C](fg:green) - Copy file
+					[h](fg:green) - Hide hidden files
+					[e](fg:green) - Show file extension
+					`
+					showHidden = true
 				}
 			}
 		case "<Enter>":
