@@ -24,6 +24,7 @@ var (
 	p2              = widgets.NewParagraph()
 	p3              = widgets.NewParagraph()
 	showHidden bool = true
+	showEx     bool = true
 	catMode    bool = false
 )
 
@@ -331,6 +332,16 @@ func initWidgets() {
 				}
 				showHidden = !showHidden
 				l.Rows = cfm.ReadFiles(path, showHidden)
+			}
+		case "e":
+			if !catMode && !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress && copyPath == "" {
+				showEx = !showEx
+				if showEx {
+					l.Rows = cfm.ReadFiles(path, showHidden)
+				} else {
+					l.Rows = cfm.NoEx(path)
+					p.Text = pText
+				}
 			}
 		case "<Enter>":
 			if !catMode && !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
