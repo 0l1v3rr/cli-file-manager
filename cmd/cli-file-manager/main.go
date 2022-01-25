@@ -15,7 +15,7 @@ import (
 	"github.com/skratchdot/open-golang/open"
 )
 
-const VERSION = "v1.1"
+const VERSION = "v1.2.0"
 
 var (
 	path       string
@@ -555,7 +555,7 @@ func initItems(pText string, disk cfm.Status) {
 
 	p2.Border = true
 	p2.Title = "File Information"
-	p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+	p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(0)))
 	p2.SetRect(0, cfm.GetCliHeight(), cfm.GetCliWidth(), int(float64(cfm.GetCliHeight())*0.73))
 	p2.BorderStyle.Fg = ui.ColorBlue
 	p2.WrapText = false
