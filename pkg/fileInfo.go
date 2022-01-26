@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -29,7 +30,30 @@ func GetFileInformations(p string) string {
 	}
 	path = strings.ReplaceAll(path, "//", "/")
 
-	return fmt.Sprintf("[Name:](fg:green) %v\n[Path:](fg:green) %v\n[Size:](fg:green) %v byte\n[Permission:](fg:green) %v\n[Directory:](fg:green) %v\n[Last Modified:](fg:green) %v", fileStat.Name(), path, fileStat.Size(), fileStat.Mode(), isDir, fileStat.ModTime().Format(time.RFC1123))
+	size := 0
+	if fileStat.Name() == "../" || fileStat.Name() == ".." {
+		size = 0
+	} else if fileStat.IsDir() {
+		size = int(dirSize(p))
+	} else {
+		size = int(fileStat.Size())
+	}
+
+	return fmt.Sprintf("[Name:](fg:green) %v\n[Path:](fg:green) %v\n[Size:](fg:green) %v byte\n[Permission:](fg:green) %v\n[Directory:](fg:green) %v\n[Last Modified:](fg:green) %v", fileStat.Name(), path, size, fileStat.Mode(), isDir, fileStat.ModTime().Format(time.RFC1123))
+}
+
+func dirSize(path string) int64 {
+	var size int64
+	filepath.Walk(path, func(_ string, info os.FileInfo, err error) error {
+		if err != nil {
+			return nil
+		}
+		if !info.IsDir() {
+			size += info.Size()
+		}
+		return err
+	})
+	return size
 }
 
 func EmptyFileInfo() string {
