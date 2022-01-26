@@ -9,7 +9,7 @@ It's fully responsive and incredibly fast.
 - Browse directories/files
 - Disc usage panel
 - Memory usage panel
-- File and Folder information
+- File and Folder information, with accurate folder size
 - Open files (With the default program of the OS)
 - Delete files or folders
 - Rename files or folders
