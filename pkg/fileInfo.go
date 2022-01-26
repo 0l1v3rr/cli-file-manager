@@ -39,7 +39,27 @@ func GetFileInformations(p string) string {
 		size = int(fileStat.Size())
 	}
 
-	return fmt.Sprintf("[Name:](fg:green) %v\n[Path:](fg:green) %v\n[Size:](fg:green) %v byte\n[Permission:](fg:green) %v\n[Directory:](fg:green) %v\n[Last Modified:](fg:green) %v", fileStat.Name(), path, size, fileStat.Mode(), isDir, fileStat.ModTime().Format(time.RFC1123))
+	return fmt.Sprintf("[Name:](fg:green) %v\n[Path:](fg:green) %v\n[Size:](fg:green) %v\n[Permission:](fg:green) %v\n[Directory:](fg:green) %v\n[Last Modified:](fg:green) %v", fileStat.Name(), path, formatByte(size), fileStat.Mode(), isDir, fileStat.ModTime().Format(time.RFC1123))
+}
+
+func formatByte(size int) string {
+	if size <= 1000 {
+		return fmt.Sprintf("%v byte", size)
+	}
+
+	if size/1000 <= 1000 {
+		return fmt.Sprintf("%.1f kilobyte", float32(float32(size)/1000))
+	}
+
+	if size/1000/1000 <= 1000 {
+		return fmt.Sprintf("%.1f megabyte", float32(float32(size)/1000/1000))
+	}
+
+	if size/1000/1000/1000 <= 1000 {
+		return fmt.Sprintf("%.1f gigabyte", float32(float32(size)/1000/1000/1000))
+	}
+
+	return ""
 }
 
 func dirSize(path string) int64 {
