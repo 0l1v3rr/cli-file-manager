@@ -117,6 +117,10 @@ func initWidgets() {
 					p2.Text = cfm.GetFileInformations(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
 				}
 			}
+		case "<Space>":
+			if !catMode {
+				p2.Text = cfm.GetFileInformationsWithSize(fmt.Sprintf("%v/%v", path, getFileName(l.SelectedRow)))
+			}
 		case "<C-l>":
 			if !catMode && !fileCreatingInProgress && !dirCreatingInProgress && !renameInProgress {
 				selected := getFileName(l.SelectedRow)
