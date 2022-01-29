@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -32,8 +31,8 @@ func main() {
 
 	defaultPath, err := os.Getwd()
 	if err != nil {
-		log.Fatalf("%v", err)
-		return
+		fmt.Println("An error occurred while reading the current path.")
+		defaultPath = "/"
 	}
 
 	if len(os.Args) > 1 && os.Args[1] != "" {
@@ -44,7 +43,7 @@ func main() {
 
 	err2 := ui.Init()
 	if err2 != nil {
-		log.Fatalf("failed to initialize termui: %v", err)
+		fmt.Println("Failed to initialize termui.")
 		return
 	}
 	defer ui.Close()
