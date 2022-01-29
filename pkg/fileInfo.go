@@ -33,7 +33,7 @@ func GetFileInformations(p string) string {
 	if fileStat.IsDir() {
 		return fmt.Sprintf("[Name:](fg:green) %v\n[Path:](fg:green) %v\n[Size:](fg:green) %v\n[Permission:](fg:green) %v\n[Directory:](fg:green) %v\n[Last Modified:](fg:green) %v", fileStat.Name(), path, "Press space to calculate", fileStat.Mode(), isDir, fileStat.ModTime().Format(time.RFC1123))
 	} else {
-		return fmt.Sprintf("[Name:](fg:green) %v\n[Path:](fg:green) %v\n[Size:](fg:green) %v\n[Permission:](fg:green) %v\n[Directory:](fg:green) %v\n[Last Modified:](fg:green) %v", fileStat.Name(), path, fileStat.Size(), fileStat.Mode(), isDir, fileStat.ModTime().Format(time.RFC1123))
+		return fmt.Sprintf("[Name:](fg:green) %v\n[Path:](fg:green) %v\n[Size:](fg:green) %v\n[Permission:](fg:green) %v\n[Directory:](fg:green) %v\n[Last Modified:](fg:green) %v", fileStat.Name(), path, formatByte(int(fileStat.Size())), fileStat.Mode(), isDir, fileStat.ModTime().Format(time.RFC1123))
 	}
 }
 
